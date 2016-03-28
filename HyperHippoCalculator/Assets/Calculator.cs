@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using System;
+
 public class Calculator : MonoBehaviour
 {
 	public enum mathType {add, sub, mult, div, NA};
@@ -26,7 +28,21 @@ public class Calculator : MonoBehaviour
 
 	public void Calculate()
 	{
-		string answer = DoBracketMath(mathStr);
+
+		string answer = "ERROR";
+		try
+		{
+			answer = DoBracketMath(mathStr);
+		}
+		catch(Exception e)
+		{
+			
+		}
+		if(answer.Contains("(") || answer.Contains(")") || answer.Contains("+") || 
+			answer.Contains("-") || answer.Contains("x") || answer.Contains("/") )
+		{
+			answer = "ERROR";
+		}
 		resultString =  "= " + answer;
 		answerText.text = resultString;
 
@@ -58,37 +74,44 @@ and replace the bracket block with that string.
 			//Debug.Log(s);
 			if(s.Equals("("))
 			{
-				
-				int bracketEndIndex = 0;
-
 				string tempStr = GetEnclosedBrackets(subStr.Substring(i));
-				bracketEndIndex = tempStr.Length + i + 1;
 
 				string bracketAns = DoBracketMath(tempStr);
 				Debug.Log("bracketAns = " + bracketAns);
-					
-				//strnum1 = num1.ToString();
-				i = bracketEndIndex;
+
+				bool foundlazyness = false;
+				string front = "", back = "";
+				if(i > 0)
+				{
+					front = subStr.Substring(0, i);
+				}
+				if(i + tempStr.Length + 2 < subStr.Length)
+				{
+					back = subStr.Substring(i + tempStr.Length + 2);
+				}
+				Debug.Log(front + "?" + back);
+				if(!front.EndsWith("x") && !front.EndsWith("/") && !front.EndsWith("+") && 
+					!front.EndsWith("-") && !front.EndsWith("x") && !front.Equals("") )
+				{
+					front += "x";
+					foundlazyness = true;
+				}
+				if(!back.StartsWith("x") && !back.StartsWith("/") && !back.StartsWith("+") && 
+					!back.StartsWith("-") && !back.StartsWith("x") && !back.Equals("") )
+				{
+					back = "x" + back;
+					foundlazyness = true;
+				}
+
+				if(foundlazyness)
+				{
+					subStr = front + "(" + tempStr + ")" + back;
+					Debug.Log("new lazyness substring = " + subStr);
+				}
+
 				subStr = subStr.Replace("(" + tempStr + ")", bracketAns); 
 				Debug.Log("new substring = " + subStr);
-
-//					if(myType != mathType.NA )
-//					{
-//						string tempStr = GetEnclosedBrackets(subStr.Substring(i));
-//						bracketEndIndex = tempStr.Length + i + 1;
-//						Debug.Log( mathStr.Substring(bracketEndIndex - 1));
-//						num2 = DoBracketMath(tempStr);
-//
-//						i = bracketEndIndex;
-//
-//						float tempnum = DoMath(num1,num2,myType);
-//						num2 = 0;
-//						num1 = tempnum;
-//						myType = mathType.NA;
-//						strnum1 = num1.ToString();
-//						strnum2 = "";
-//						//hasNum1 = true;
-//						hasNum1 = true;
+				i = -1;
 			}
 		}
 
@@ -96,7 +119,7 @@ and replace the bracket block with that string.
 		float resultf = 0;
 		mathType currentType = mathType.mult;
 		int infloopstopper = 0;
-		int rstart = 0, rend = 0;
+		int rstart = 0;
 		while(!float.TryParse(subStr,out resultf) && infloopstopper < 40)
 		{
 			infloopstopper++;
@@ -218,64 +241,7 @@ and replace the bracket block with that string.
 
 		return subStr;
 	}
-
-
-	/*
-	 * 
-//		float retAnswer = 0;
-	//		if(myType == mathType.NA)
-	//		{
-	//			Debug.Log("only had first number");
-	//			retAnswer = num1;
-	//		}
-	//		else
-	//		{
-	//			num2 = float.Parse(strnum2);
-	//			strnum2 = "";
-	//			retAnswer = DoMath(num1, num2, myType);
-	//		}
-
-	//		return retAnswer.ToString(); 
-	 * 
-	 * if(myType != mathType.NA )
-		{
-			num2 = float.Parse(strnum2);
-			strnum2 = "";
-			float tempnum = DoMath(num1,num2,myType);
-			num2 = 0;
-			num1 = tempnum;
-			myType = mathType.NA;
-			hasNum1 = true;
-		}
-		else if(s.Equals("x"))
-		{
-			myType = mathType.mult;
-			num1 = float.Parse(strnum1);
-			strnum1 = "";
-			hasNum1 = true;
-		}
-		else if(s.Equals("/"))
-		{
-			myType = mathType.div;
-			num1 = float.Parse(strnum1);
-			strnum1 = "";
-			hasNum1 = true;
-		}
-		else if(s.Equals("+"))
-		{
-			myType = mathType.add;
-			num1 = float.Parse(strnum1);
-			strnum1 = "";
-			hasNum1 = true;
-		}
-		else if(s.Equals("-"))
-		{
-			myType = mathType.sub;
-			num1 = float.Parse(strnum1);
-			strnum1 = "";
-			hasNum1 = true;
-		}
-	 */
+		
 
 	private float DoMath(float num1, float num2, mathType type)
 	{
