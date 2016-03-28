@@ -26,7 +26,7 @@ public class Calculator : MonoBehaviour
 
 	public void Calculate()
 	{
-		float answer = DoBracketMath(mathStr);
+		string answer = DoBracketMath(mathStr);
 		resultString =  "= " + answer;
 		answerText.text = resultString;
 
@@ -43,153 +43,239 @@ run the bracket finding algorithm the same but instead of a float return a solve
 and replace the bracket block with that string.
 
 	*/
-	private float DoBracketMath(string subStr)
+	private string DoBracketMath(string subStr)
 	{
 		Debug.Log(subStr);
-		mathType myType = mathType.NA;
+		//mathType myType = mathType.NA;
 		string strnum1 = "", strnum2 = "";
 		float num1 = 0, num2 = 0;
 		string s;
 		bool hasNum1 = false;
-		//bool hasNum2 = false;
+		//bool hasNum2 = false;  
 		for(int i = 0 ; i < subStr.Length ; i++)
 		{
 			s = subStr.Substring(i, 1);
-			Debug.Log(s);
-			if(s.Equals("(") || s.Equals(")") || s.Equals("+") || s.Equals("-") 
-				|| s.Equals("x") || s.Equals("/") )
+			//Debug.Log(s);
+			if(s.Equals("("))
 			{
-//				Debug.Log("found blank at index " + i + " length = " + subStr.Length);	
-//				s2 = subStr.Substring(i+1, 1);
-				if(s.Equals("("))
-				{
-					int bracketEndIndex = 0;
-					if(myType != mathType.NA )
-					{
-						string tempStr = GetEnclosedBrackets(subStr.Substring(i));
-						bracketEndIndex = tempStr.Length + i + 1;
-						Debug.Log( mathStr.Substring(bracketEndIndex - 1));
-						num2 = DoBracketMath(tempStr);
+				
+				int bracketEndIndex = 0;
 
-						i = bracketEndIndex;
+				string tempStr = GetEnclosedBrackets(subStr.Substring(i));
+				bracketEndIndex = tempStr.Length + i + 1;
 
-						float tempnum = DoMath(num1,num2,myType);
-						num2 = 0;
-						num1 = tempnum;
-						myType = mathType.NA;
-						strnum1 = num1.ToString();
-						strnum2 = "";
-						//hasNum1 = true;
-						hasNum1 = true;
-					}
-					else
-					{
-						string tempStr = GetEnclosedBrackets(subStr.Substring(i));
-						bracketEndIndex = tempStr.Length + i + 1;
-						Debug.Log( mathStr.Substring(bracketEndIndex - 1));
-						Debug.Log(bracketEndIndex); 
-						num1 = DoBracketMath(tempStr);
-						strnum1 = num1.ToString();
-						i = bracketEndIndex;
-						hasNum1 = true;
-					}
-				}
-				else
-				{
-					Debug.Log("found mathType");
+				string bracketAns = DoBracketMath(tempStr);
+				Debug.Log("bracketAns = " + bracketAns);
+					
+				//strnum1 = num1.ToString();
+				i = bracketEndIndex;
+				subStr = subStr.Replace("(" + tempStr + ")", bracketAns); 
+				Debug.Log("new substring = " + subStr);
 
-//					if(hasNum1 && strnum2 == "")
+//					if(myType != mathType.NA )
 //					{
+//						string tempStr = GetEnclosedBrackets(subStr.Substring(i));
+//						bracketEndIndex = tempStr.Length + i + 1;
+//						Debug.Log( mathStr.Substring(bracketEndIndex - 1));
+//						num2 = DoBracketMath(tempStr);
+//
+//						i = bracketEndIndex;
+//
 //						float tempnum = DoMath(num1,num2,myType);
 //						num2 = 0;
 //						num1 = tempnum;
 //						myType = mathType.NA;
-//					}
-//					else
-					if(myType != mathType.NA )
+//						strnum1 = num1.ToString();
+//						strnum2 = "";
+//						//hasNum1 = true;
+//						hasNum1 = true;
+			}
+		}
+
+		string operation = "x";
+		float resultf = 0;
+		mathType currentType = mathType.mult;
+		int infloopstopper = 0;
+		int rstart = 0, rend = 0;
+		while(!float.TryParse(subStr,out resultf) && infloopstopper < 40)
+		{
+			infloopstopper++;
+			for(int i = 0 ; i < subStr.Length ; i++)
+			{
+				s = subStr.Substring(i,1);
+				if( s.Equals("+") || s.Equals("-") || s.Equals("x") || s.Equals("/") )
+				{
+					//Debug.Log("found mathType");
+					if( s.Equals(operation) && !hasNum1)
+					{
+						num1 = float.Parse(strnum1);
+
+						hasNum1 = true;
+					}
+					else if(hasNum1)
 					{
 						num2 = float.Parse(strnum2);
+						float tempans = DoMath(num1, num2, currentType);
+						string oldstr = strnum1 + operation + strnum2;
+						Debug.Log("oldstr (" + oldstr + ")");
+						Debug.Log("mathing substr " + subStr);
+
+						string front = "", back = "";
+						if(rstart > 0)
+						{
+							front = subStr.Substring(0, rstart);
+						}
+						back = subStr.Substring(i);
+						//subStr = subStr.Replace(oldstr, tempans.ToString());
+						subStr = front + tempans.ToString() + back;
+						Debug.Log("new Substr " + subStr);
+
+						hasNum1 = false;
+						strnum1 = "";
 						strnum2 = "";
-						float tempnum = DoMath(num1,num2,myType);
-						num2 = 0;
-						num1 = tempnum;
-						myType = mathType.NA;
-						hasNum1 = true;
+						i = -1;
 					}
-					else if(s.Equals("x"))
+					else
 					{
-						myType = mathType.mult;
-						num1 = float.Parse(strnum1);
 						strnum1 = "";
-						hasNum1 = true;
 					}
-					else if(s.Equals("/"))
-					{
-						myType = mathType.div;
-						num1 = float.Parse(strnum1);
-						strnum1 = "";
-						hasNum1 = true;
-					}
-					else if(s.Equals("+"))
-					{
-						myType = mathType.add;
-						num1 = float.Parse(strnum1);
-						strnum1 = "";
-						hasNum1 = true;
-					}
-					else if(s.Equals("-"))
-					{
-						myType = mathType.sub;
-						num1 = float.Parse(strnum1);
-						strnum1 = "";
-						hasNum1 = true;
-					}
-//					if(s.Equals("x"))
-//					{
-//						myType = mathType.mult;
-//					}
-//					else if(s.Equals("/"))
-//					{
-//						myType = mathType.div;
-//					}
-//					else if(s.Equals("+"))
-//					{
-//						myType = mathType.add;
-//					}
-//					else if(s.Equals("-"))
-//					{
-//						myType = mathType.sub;
-//					}
-						
 				}
-			}
-			else
-			{
-				if(hasNum1)
+				else if( i + 1 == subStr.Length && hasNum1)
 				{
+					strnum2 += s;
+					num2 = float.Parse(strnum2);
+					float tempans = DoMath(num1, num2, currentType);
+					string oldstr = strnum1 + operation + strnum2;
+					Debug.Log("oldstr (" + oldstr + ")");
+					Debug.Log("mathing substr " + subStr);
+
+					string front = "";
+					if(rstart > 0)
+					{
+						front = subStr.Substring(0, rstart);
+					}
+
+					//subStr = subStr.Replace(oldstr, tempans.ToString());
+					subStr = front + tempans.ToString();
+					Debug.Log("new Substr " + subStr);
+
+					hasNum1 = false;
+					strnum1 = "";
+					strnum2 = "";
+				}
+				else if(hasNum1)
+				{						
 					strnum2 += s;
 				}
 				else
 				{
+					if(strnum1 == "")
+					{
+						rstart = i;
+					}
 					strnum1 += s;
 				}
 			}
+
+			switch(currentType)
+			{
+			case mathType.mult:
+				{
+					if(!subStr.Contains(operation))
+					{
+						
+						currentType = mathType.div;
+						operation = "/";
+					}
+					break;
+				}
+			case mathType.div:
+				{
+					if(!subStr.Contains(operation))
+					{
+						currentType = mathType.add;
+						operation = "+";
+					}
+					break;
+				}
+			case mathType.add:
+				{
+					if(!subStr.Contains(operation))
+					{
+						currentType = mathType.sub;
+						operation = "-";
+					}
+					break;
+				}
+			}
+
+
+			strnum1 = "";
+			strnum2 = "";
+			hasNum1 = false;
+
 		}
-		float retAnswer = 0;
-		if(myType == mathType.NA)
-		{
-			Debug.Log("only had first number");
-			retAnswer = num1;
-		}
-		else
+
+		return subStr;
+	}
+
+
+	/*
+	 * 
+//		float retAnswer = 0;
+	//		if(myType == mathType.NA)
+	//		{
+	//			Debug.Log("only had first number");
+	//			retAnswer = num1;
+	//		}
+	//		else
+	//		{
+	//			num2 = float.Parse(strnum2);
+	//			strnum2 = "";
+	//			retAnswer = DoMath(num1, num2, myType);
+	//		}
+
+	//		return retAnswer.ToString(); 
+	 * 
+	 * if(myType != mathType.NA )
 		{
 			num2 = float.Parse(strnum2);
 			strnum2 = "";
-			retAnswer = DoMath(num1, num2, myType);
+			float tempnum = DoMath(num1,num2,myType);
+			num2 = 0;
+			num1 = tempnum;
+			myType = mathType.NA;
+			hasNum1 = true;
 		}
-
-		return retAnswer; 
-	}
+		else if(s.Equals("x"))
+		{
+			myType = mathType.mult;
+			num1 = float.Parse(strnum1);
+			strnum1 = "";
+			hasNum1 = true;
+		}
+		else if(s.Equals("/"))
+		{
+			myType = mathType.div;
+			num1 = float.Parse(strnum1);
+			strnum1 = "";
+			hasNum1 = true;
+		}
+		else if(s.Equals("+"))
+		{
+			myType = mathType.add;
+			num1 = float.Parse(strnum1);
+			strnum1 = "";
+			hasNum1 = true;
+		}
+		else if(s.Equals("-"))
+		{
+			myType = mathType.sub;
+			num1 = float.Parse(strnum1);
+			strnum1 = "";
+			hasNum1 = true;
+		}
+	 */
 
 	private float DoMath(float num1, float num2, mathType type)
 	{
@@ -258,7 +344,7 @@ and replace the bracket block with that string.
 			}
 
 		}
-		string tempStr = mathStr.Substring(1, b - 1);
+		string tempStr = subString.Substring(1, b - 1);
 		return tempStr;
 	}
 //	private float DoFloatParse(string* numString)
