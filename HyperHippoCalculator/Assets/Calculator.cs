@@ -13,6 +13,7 @@ public class Calculator : MonoBehaviour
 	private string mathStr = "";
 	private string resultString = "";
 
+	private bool zeroDiv = false;
 	// Use this for initialization
 	void Start () 
 	{
@@ -36,12 +37,17 @@ public class Calculator : MonoBehaviour
 		}
 		catch(Exception e)
 		{
-			
+			Debug.Log("error " + e);
 		}
 		if(answer.Contains("(") || answer.Contains(")") || answer.Contains("+") || 
 			answer.Contains("-") || answer.Contains("x") || answer.Contains("/") )
 		{
 			answer = "ERROR";
+		}
+		if(zeroDiv)
+		{
+			zeroDiv = false;
+			answer = "DIVIDED BY ZERO UNIVERSE DESTROYED.";
 		}
 		resultString =  "= " + answer;
 		answerText.text = resultString;
@@ -273,7 +279,8 @@ and replace the bracket block with that string.
 				else
 				{
 					// find way to stop everything
-					answer = 0;
+					zeroDiv = true;
+					answer = 1;
 				}
 				break;
 			}
